@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/netbrain/todoapp-go-es/common"
+	"github.com/gotstago/todoapp-go-es/common"
 )
 
 //CommandFunc is the handler of a given command message

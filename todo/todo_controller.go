@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/go-uuid/uuid"
 
-	"github.com/netbrain/todoapp-go-es/common"
+	"github.com/gotstago/todoapp-go-es/common"
 )
 
 const (

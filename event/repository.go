@@ -6,7 +6,7 @@ import (
 	"io"
 	"log"
 
-	"github.com/netbrain/todoapp-go-es/common"
+	"github.com/gotstago/todoapp-go-es/common"
 )
 
 //Repository interface handles the writes and reads of the event log

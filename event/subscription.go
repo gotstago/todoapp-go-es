@@ -1,6 +1,6 @@
 package event
 
-import "github.com/netbrain/todoapp-go-es/common"
+import "github.com/gotstago/todoapp-go-es/common"
 
 // Subscription handles a single subscription to a set of events from the event bus
 type Subscription struct {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/go-uuid/uuid"
 
-	"github.com/netbrain/todoapp-go-es/common"
-	"github.com/netbrain/todoapp-go-es/event"
+	"github.com/gotstago/todoapp-go-es/common"
+	"github.com/gotstago/todoapp-go-es/event"
 )
 
 func TestCreateTodo(t *testing.T) {

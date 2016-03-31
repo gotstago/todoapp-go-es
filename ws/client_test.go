@@ -9,9 +9,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/netbrain/todoapp-go-es/common"
+	"github.com/gotstago/todoapp-go-es/common"
 
-	"github.com/netbrain/todoapp-go-es/event"
+	"github.com/gotstago/todoapp-go-es/event"
 
 	"golang.org/x/net/websocket"
 )

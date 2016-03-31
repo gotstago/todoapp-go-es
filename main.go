@@ -12,12 +12,12 @@ import (
 
 	"golang.org/x/net/websocket"
 
-	"github.com/netbrain/todoapp-go-es/ws"
+	"github.com/gotstago/todoapp-go-es/ws"
 
-	"github.com/netbrain/todoapp-go-es/common"
-	"github.com/netbrain/todoapp-go-es/event"
-	"github.com/netbrain/todoapp-go-es/fsstore"
-	"github.com/netbrain/todoapp-go-es/todo"
+	"github.com/gotstago/todoapp-go-es/common"
+	"github.com/gotstago/todoapp-go-es/event"
+	"github.com/gotstago/todoapp-go-es/fsstore"
+	"github.com/gotstago/todoapp-go-es/todo"
 )
 
 var eventBus event.Bus

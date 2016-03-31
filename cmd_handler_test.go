@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/netbrain/todoapp-go-es/common"
+	"github.com/gotstago/todoapp-go-es/common"
 
 	"testing"
 )

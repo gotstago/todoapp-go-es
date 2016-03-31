@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/netbrain/todoapp-go-es/common"
+	"github.com/gotstago/todoapp-go-es/common"
 )
 
 func TestCanWriteAndReadEvent(t *testing.T) {

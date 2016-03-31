@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/netbrain/todoapp-go-es/common"
+	"github.com/gotstago/todoapp-go-es/common"
 )
 
 func TestCanSubscribeToEvents(t *testing.T) {
