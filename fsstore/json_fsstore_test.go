@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hashicorp/go-uuid/uuid"
+	"github.com/pborman/uuid"
 )
 
 func TestCanCreateAndGetAndRemove(t *testing.T) {
