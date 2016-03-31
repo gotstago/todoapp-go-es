@@ -3,7 +3,7 @@ package todo
 import (
 	"encoding/json"
 
-	"code.google.com/p/go-uuid/uuid"
+	"github.com/hashicorp/go-uuid/uuid"
 
 	"github.com/netbrain/todoapp-go-es/common"
 )
