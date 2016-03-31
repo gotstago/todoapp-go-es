@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"code.google.com/p/go-uuid/uuid"
+	"github.com/hashicorp/go-uuid/uuid"
 
 	"github.com/netbrain/todoapp-go-es/common"
 	"github.com/netbrain/todoapp-go-es/event"
