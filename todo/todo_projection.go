@@ -40,7 +40,7 @@ func NewProjection(bus event.Bus) *Projection {
 func (p *Projection) HandleEvent(event *common.EventMessage) {
 	switch event.Name {
 	case eventTodoItemUpdated:
-		fallthrough
+		fallthrough//skips the next case evaluation and executes 45
 	case eventTodoItemCreated:
 		p.handleTodoItemCreatedEvent(event)
 	case eventTodoItemRemoved:
@@ -49,6 +49,7 @@ func (p *Projection) HandleEvent(event *common.EventMessage) {
 }
 
 func (p *Projection) handleTodoItemCreatedEvent(event *common.EventMessage) {
+    log.Println("about to handleTodoItemCreatedEvent.....")
 	todo := new(Todo)
 	err := json.Unmarshal(*event.Data, todo)
 	if err != nil {
