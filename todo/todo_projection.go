@@ -72,7 +72,9 @@ func (p *Projection) start() {
 	for {
 		select {
 		case event := <-p.subscription.EventChan:
-			go p.HandleEvent(event)
+			//go - am - think this was a bug, results in events getting handled out of turn
+            log.Println("about to handle event.....")
+            p.HandleEvent(event)
 		}
 	}
 }

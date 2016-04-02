@@ -61,14 +61,14 @@ func (d *DefaultBus) Start() {
 				if subscription.destroyed {
 					d.subscriptions = append(d.subscriptions[:li], d.subscriptions[li+1:]...)
 				} else if len(subscription.eventType) == 0 || subscription.eventType[event.Name] {
-					go func() {
+					//go func() { - don't think this is needed
 						select {
 						case subscription.EventChan <- event:
 							log.Printf("Sending event %s to %s", event.Name, subscription.Name)
 						case <-time.After(3 * time.Second):
 							log.Printf("Sending event to %s timed out!", subscription.Name)
 						}
-					}()
+					//}()
 				}
 			}
 		}

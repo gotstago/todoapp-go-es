@@ -55,7 +55,7 @@ func main() {
 
 	//Read the event log
 	go func() {
-		log.Println("Reading the event log...")
+		log.Println("Reading the event log.....")
 		err := eventRepository.Read()
 		if err != nil {
 			panic(err)
