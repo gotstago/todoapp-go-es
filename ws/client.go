@@ -13,6 +13,9 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+// Client represents a websocket connection
+// the eventBus is subscribed to 
+// there is a quitChan for stopping activity
 type Client struct {
 	conn         *websocket.Conn
 	eventBus     event.Bus
@@ -25,15 +28,16 @@ const eventNewWebSocketClient = "newWebSocketClient"
 var numClient = int32(0)
 
 type subscribe struct {
-	events []string `json:"events"`
+	Events []string `json:"events"`
 }
 
+// NewClient will return a web socket instance pointer
 func NewClient(conn *websocket.Conn, eventBus event.Bus) *Client {
 
 	c := &Client{
 		conn:         conn,
 		eventBus:     eventBus,
-		subscription: eventBus.Subscribe(fmt.Sprint("WS: %s", conn.LocalAddr())),
+		subscription: eventBus.Subscribe(fmt.Sprintf("WS: %s", conn.LocalAddr())),
 		quitChan:     make(chan bool, 1),
 	}
 
@@ -54,6 +58,7 @@ func (c *Client) sendNumClientsEvent() {
 	})
 }
 
+//Listen will increase client count 
 func (c *Client) Listen() {
 	atomic.AddInt32(&numClient, 1)
 	c.sendNumClientsEvent()
@@ -66,8 +71,12 @@ func (c *Client) Listen() {
 	c.sendNumClientsEvent()
 }
 
+// listenRead will listen for incoming messages from connection 
+// incoming messages contain a list of events 
+// ChangeSubscription is called to indicate an interest in specific events
 func (c *Client) listenRead() {
-	s := new(subscribe)
+	//s holds a slice of string events
+    s := new(subscribe)
 	for {
 		select {
 		case <-c.quitChan:
@@ -81,13 +90,15 @@ func (c *Client) listenRead() {
 				c.Stop()
 				log.Fatal(err)
 			} else {
-				log.Printf("Changing subscription to: %v", s.events)
-				c.subscription.ChangeSubscription(s.events...)
+				log.Printf("Changing subscription to: %v", s.Events)
+				c.subscription.ChangeSubscription(s.Events...)
 			}
 		}
 	}
 }
 
+// listenWrite will listen for events of interest on the subscription 
+// and send them to client connection
 func (c *Client) listenWrite() {
 	for {
 		select {
@@ -104,6 +115,7 @@ func (c *Client) listenWrite() {
 	}
 }
 
+// Stop will send a message to quit channel for all active funcs
 func (c *Client) Stop() {
 	c.quitChan <- true
 }
