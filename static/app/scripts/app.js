@@ -104,6 +104,70 @@ angular.module('todoapp', ['ngRoute', 'ngWebSocket']).config(['$routeProvider',
                     }
                 ]
             }
+        }).when('/game/create', {
+            templateUrl: 'scripts/game/create.html',
+            controller: ['$scope', '$http', '$location',
+                function($scope, $http, $location) {
+                    $scope.game = {}
+                    $scope.create = function() {
+                        $http.post('/cmd/', {
+                            name: 'createGameItem',
+                            data: $scope.todo,
+                        }).success(function() {
+                            $location.path('/game')
+                        }).error(function() {
+                            alert('Something wen\'t awry')
+                        })
+                    }
+                }
+            ],
+        }).when('/game', {
+            templateUrl: 'scripts/todo/all.html',
+            controller: ['$scope', '$http', '$location', 'games', 'todoappws',
+                function($scope, $http, $location, games, todoappws) {
+                    $scope.games = games.data
+                    todoappws.on('gameItemCreated', function(event) {
+                        $scope.games[event.data.id] = event.data;
+                    })
+                    todoappws.on('gameItemUpdated', function(event) {
+                        $scope.games[event.data.id] = event.data
+                    })
+                    todoappws.on('gameItemRemoved', function(event) {
+                        delete $scope.games[event.data]
+                    })
+                    $scope.show = function(game) {
+                        $location.path('/game/' + game.id)
+                    }
+                    $scope.edit = function(game) {
+                        $location.path('/game/' + game.id + '/edit')
+                    }
+                    $scope.remove = function(game) {
+                        $http.post('/cmd/', {
+                            name: 'removeGameItem',
+                            data: game.id,
+                        }).error(function() {
+                            alert('Something wen\'t awry')
+                        })
+                    }
+                    $scope.toggleCompleted = function(game) {
+                        game = angular.copy(game)
+                        game.completed = !game.completed
+                        $http.post('/cmd/', {
+                            name: 'updateGameItem',
+                            data: game,
+                        }).error(function() {
+                            alert('Something wen\'t awry')
+                        })
+                    }
+                }
+            ],
+            resolve: {
+                games: ['$http',
+                    function($http) {
+                        return $http.get('/api/game/all.json')
+                    }
+                ]
+            }
         })
     }
 ]).run(['todoappws','$rootScope',

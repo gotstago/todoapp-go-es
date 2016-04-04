@@ -59,13 +59,14 @@ func (c *Client) sendNumClientsEvent() {
 }
 
 //Listen will increase client count 
+// and then it will start to listenRead and listenWrite
 func (c *Client) Listen() {
 	atomic.AddInt32(&numClient, 1)
 	c.sendNumClientsEvent()
 
 	go c.listenWrite()
 	c.listenRead()
-
+    //listenRead is blocking until Stop is called
 	c.subscription.Destroy()
 	atomic.AddInt32(&numClient, -1)
 	c.sendNumClientsEvent()
