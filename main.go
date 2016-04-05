@@ -18,6 +18,7 @@ import (
 	"github.com/gotstago/todoapp-go-es/event"
 	"github.com/gotstago/todoapp-go-es/fsstore"
 	"github.com/gotstago/todoapp-go-es/todo"
+	"github.com/gotstago/todoapp-go-es/game"
 )
 
 var eventBus event.Bus
@@ -26,6 +27,7 @@ var eventLogWriter io.Writer
 var eventLogReader io.Reader
 var eventRepository event.Repository
 var todoProjection *todo.Projection
+var gameProjection *game.Projection
 var staticPath string
 
 func init() {
@@ -38,6 +40,7 @@ func init() {
 	eventBus = event.NewDefaultBus()
 	eventLogFile = filepath.Join(os.TempDir(), "eventlog")
 	todoProjection = todo.NewProjection(eventBus)
+	gameProjection = game.NewProjection(eventBus)
 	eventLogWriter, _ = os.OpenFile(eventLogFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	eventLogReader, _ = os.Open(eventLogFile)
 	eventRepository = event.NewDefaultRepository(eventLogReader, eventLogWriter, eventBus)
@@ -50,6 +53,9 @@ func main() {
 	cmdHandler.RegisterCommand("createTodoItem", todo.CreateTodoItem)
 	cmdHandler.RegisterCommand("removeTodoItem", todo.RemoveTodoItem)
 	cmdHandler.RegisterCommand("updateTodoItem", todo.UpdateTodoItem)
+	cmdHandler.RegisterCommand("createGameItem", game.CreateGameItem)
+	cmdHandler.RegisterCommand("removeGameItem", game.RemoveGameItem)
+	cmdHandler.RegisterCommand("updateGameItem", game.UpdateGameItem)
 	go cmdHandler.Start()
 	go eventBus.Start()
 

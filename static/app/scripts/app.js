@@ -112,7 +112,7 @@ angular.module('todoapp', ['ngRoute', 'ngWebSocket']).config(['$routeProvider',
                     $scope.create = function() {
                         $http.post('/cmd/', {
                             name: 'createGameItem',
-                            data: $scope.todo,
+                            data: $scope.game,
                         }).success(function() {
                             $location.path('/game')
                         }).error(function() {
@@ -121,8 +121,48 @@ angular.module('todoapp', ['ngRoute', 'ngWebSocket']).config(['$routeProvider',
                     }
                 }
             ],
+        }).when('/game/:gameid', {
+            templateUrl: 'scripts/game/show.html',
+            controller: ['$scope', 'game',
+                function($scope, game) {
+                    $scope.game = game.data
+                }
+            ],
+            resolve: {
+                game: ['$http', '$route',
+                    function($http, $route) {
+                        id = $route.current.params.gameid
+                        return $http.get('/api/game/' + id + '.json')
+                    }
+                ]
+            }
+        }).when('/game/:gameid/edit', {
+            templateUrl: 'scripts/game/edit.html',
+            controller: ['$scope', '$http', '$location', 'game',
+                function($scope, $http, $location, game) {
+                    $scope.game = game.data
+                    $scope.edit = function() {
+                        $http.post('/cmd/', {
+                            name: 'updateGameItem',
+                            data: $scope.game,
+                        }).success(function() {
+                            $location.path('/game')
+                        }).error(function() {
+                            alert('Something wen\'t awry')
+                        })
+                    }
+                }
+            ],
+            resolve: {
+                game: ['$http', '$route',
+                    function($http, $route) {
+                        id = $route.current.params.gameid
+                        return $http.get('/api/game/' + id + '.json')
+                    }
+                ]
+            }
         }).when('/game', {
-            templateUrl: 'scripts/todo/all.html',
+            templateUrl: 'scripts/game/all.html',
             controller: ['$scope', '$http', '$location', 'games', 'todoappws',
                 function($scope, $http, $location, games, todoappws) {
                     $scope.games = games.data
