@@ -4,10 +4,13 @@ This is a sample applicaton of golang and CQRS + ES in a simple todo app.
 
 ## Running with docker
 
+
 ```
-docker build -t todoapp-go-es .
-docker run -it --rm --name todoapp todoapp-go-es
+https://larry-price.com/blog/2015/06/25/architecture-for-a-golang-web-app
 ```
+
+```
+docker-compose up```
 
 ## Running without docker
 

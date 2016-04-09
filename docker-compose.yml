@@ -1,7 +1,9 @@
-web:
-  image: ntboes/golang-gin
-  command: gin
-  ports:
-   - "3000:3000"
+main:
+  build: .
+  command: gin run
+  #env_file: .env
   volumes:
-   - app:/go/src/app
+    - ./:/go/src/github.com/gotstago/todoapp-go-es
+  working_dir: /go/src/github.com/gotstago/todoapp-go-es
+  ports:
+    - "3000:3000"
