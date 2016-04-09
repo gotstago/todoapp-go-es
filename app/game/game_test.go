@@ -16,8 +16,12 @@ func TestCreateStack(t *testing.T) {
     bus := event.NewDefaultBus()
 	projection := NewProjection(bus)
 	id := uuid.New()
-	data, _ := json.Marshal(&Game{ID: id})
+    g := &Game{ID: id} 
+    t.Log("game is ",g.ID)
+	data, _ := json.Marshal(g)
+    t.Log("game is ",data)
 	raw := json.RawMessage(data)
+    t.Log("game is ",data)
 	e := &common.EventMessage{
 		Name:    eventGameItemCreated,
 		Data:    &raw,
