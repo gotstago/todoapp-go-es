@@ -14,7 +14,7 @@ import (
 )
 
 // Client represents a websocket connection
-// the eventBus is subscribed to 
+// the eventBus is subscribed to
 // there is a quitChan for stopping activity
 type Client struct {
 	conn         *websocket.Conn
@@ -58,7 +58,7 @@ func (c *Client) sendNumClientsEvent() {
 	})
 }
 
-//Listen will increase client count 
+//Listen will increase client count
 // and then it will start to listenRead and listenWrite
 func (c *Client) Listen() {
 	atomic.AddInt32(&numClient, 1)
@@ -66,18 +66,18 @@ func (c *Client) Listen() {
 
 	go c.listenWrite()
 	c.listenRead()
-    //listenRead is blocking until Stop is called
+	//listenRead is blocking until Stop is called
 	c.subscription.Destroy()
 	atomic.AddInt32(&numClient, -1)
 	c.sendNumClientsEvent()
 }
 
-// listenRead will listen for incoming messages from connection 
-// incoming messages contain a list of events 
+// listenRead will listen for incoming messages from connection
+// incoming messages contain a list of events
 // ChangeSubscription is called to indicate an interest in specific events
 func (c *Client) listenRead() {
 	//s holds a slice of string events
-    s := new(subscribe)
+	s := new(subscribe)
 	for {
 		select {
 		case <-c.quitChan:
@@ -98,7 +98,7 @@ func (c *Client) listenRead() {
 	}
 }
 
-// listenWrite will listen for events of interest on the subscription 
+// listenWrite will listen for events of interest on the subscription
 // and send them to client connection
 func (c *Client) listenWrite() {
 	for {

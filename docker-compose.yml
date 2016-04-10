@@ -7,3 +7,9 @@ main:
   working_dir: /go/src/github.com/gotstago/todoapp-go-es
   ports:
     - "3000:3000"
+# to run commands against running image
+# docker exec -it <image name> <command>
+# eg
+# docker exec todoappgoes_main_1 golint ./...
+# also see
+# http://rancher.com/docker-based-build-pipelines-part-1-continuous-integration-and-testing/

@@ -12,16 +12,16 @@ import (
 
 func TestCreateStack(t *testing.T) {
 	//if we do not set the fsstore.DataDir, the default is to place in /tmp on linux, or the os temp dir
-    //prevents adding data to real api files
-    bus := event.NewDefaultBus()
+	//prevents adding data to real api files
+	bus := event.NewDefaultBus()
 	projection := NewProjection(bus)
 	id := uuid.New()
-    g := &Game{ID: id} 
-    t.Log("game is ",g.ID)
+	g := &Game{ID: id}
+	t.Log("game is ", g.ID)
 	data, _ := json.Marshal(g)
-    t.Log("game is ",data)
+	t.Log("game is ", data)
 	raw := json.RawMessage(data)
-    t.Log("game is ",data)
+	t.Log("game is ", data)
 	e := &common.EventMessage{
 		Name:    eventGameItemCreated,
 		Data:    &raw,

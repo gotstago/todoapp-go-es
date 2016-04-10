@@ -40,7 +40,7 @@ func NewProjection(bus event.Bus) *Projection {
 func (p *Projection) HandleEvent(event *common.EventMessage) {
 	switch event.Name {
 	case eventGameItemUpdated:
-		fallthrough//skips the next case evaluation and executes 45
+		fallthrough //skips the next case evaluation and executes 45
 	case eventGameItemCreated:
 		p.handleGameItemCreatedEvent(event)
 	case eventGameItemRemoved:
@@ -49,7 +49,7 @@ func (p *Projection) HandleEvent(event *common.EventMessage) {
 }
 
 func (p *Projection) handleGameItemCreatedEvent(event *common.EventMessage) {
-    log.Println("about to handleGameItemCreatedEvent.....")
+	log.Println("about to handleGameItemCreatedEvent.....")
 	game := new(Game)
 	err := json.Unmarshal(*event.Data, game)
 	if err != nil {
@@ -74,8 +74,8 @@ func (p *Projection) start() {
 		select {
 		case event := <-p.subscription.EventChan:
 			//go - am - think this was a bug, results in events getting handled out of turn
-            log.Println("about to handle event.....")
-            p.HandleEvent(event)
+			log.Println("about to handle event.....")
+			p.HandleEvent(event)
 		}
 	}
 }

@@ -17,8 +17,8 @@ import (
 	"github.com/gotstago/todoapp-go-es/common"
 	"github.com/gotstago/todoapp-go-es/event"
 	"github.com/gotstago/todoapp-go-es/fsstore"
-	"github.com/gotstago/todoapp-go-es/todo"
 	"github.com/gotstago/todoapp-go-es/game"
+	"github.com/gotstago/todoapp-go-es/todo"
 )
 
 var eventBus event.Bus

@@ -53,7 +53,7 @@ func (d *DefaultCommandHandler) Start() {
 	for {
 		select {
 		case event := <-d.eventChan:
-            log.Println("in Start..writing to repo...",event.Name)
+			log.Println("in Start..writing to repo...", event.Name)
 			eventRepository.Write(event)
 		}
 	}
