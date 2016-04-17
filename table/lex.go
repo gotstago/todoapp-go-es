@@ -189,7 +189,7 @@ func (l *lexer) backup() {
 // }
 
 // emit passes an item back to the client.
-func (l *controller) emit(t common.EventType) {
+func (l *controller) emit(t common.MessageType) {
     /**/
     // var echo string
 	// if err := json.Unmarshal(*cmd.Data, &todo); err != nil {
@@ -340,7 +340,8 @@ const (
 
 // lexText scans until an opening action delimiter, "{{".
 func start(l *controller) stateFn {
-    fmt.Println("consuming command...", <-l.input)
+    _ = <-l.input
+    fmt.Println("consuming command...")
 	// for {
 	// 	delim, trimSpace := l.atLeftDelim()
 	// 	if delim {
@@ -364,7 +365,7 @@ func start(l *controller) stateFn {
 	// if l.pos > l.start {
 	// 	l.emit(itemText)
 	// }
-	l.emit(common.EventEOG)
+	l.emit(common.MessageEOG)
 	return nil
 }
 

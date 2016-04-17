@@ -9,20 +9,20 @@ import (
 type CommandMessage struct {
 	Name string           `json:"name"`
 	Data *json.RawMessage `json:"data"`
-	Typ  CommandType      `json:"typ"`
+	Typ  MessageType      `json:"type"`
 }
 
-// CommandType identifies the type of incoming command.
-type CommandType int
+// MessageType identifies the type of incoming command.
+type MessageType int
 
 const (
-	CommandError    CommandType = iota // error occurred; value is text of error
-	CommandBid                         // player bid
-	CommandAnnounce                    // player announcement - eg. Bella
-	CommandPlayCard                    // player submitting a card to play
-	CommandDeal                        // player request to deal
-	CommandAccuse                      // accuse another player of a misplay
-	CommandEOG                         //end of game
+	MessageError    MessageType = iota // error occurred; value is text of error
+	MessageBid                         // player bid
+	MessageAnnounce                    // player announcement - eg. Bella
+	MessagePlayCard                    // player submitting a card to play
+	MessageDeal                        // player request to deal
+	MessageAccuse                      // accuse another player of a misplay
+	MessageEOG                         //end of game
 )
 
 func (cm CommandMessage) String() string {
@@ -31,9 +31,9 @@ func (cm CommandMessage) String() string {
 		return err.Error()
 	}
     switch {
-	case cm.Typ == CommandEOG:
+	case cm.Typ == MessageEOG:
 		return "EOG"
-	case cm.Typ == CommandError:
+	case cm.Typ == MessageError:
 		return data
 	// case cm.Typ > itemKeyword:
 	// 	return fmt.Sprintf("<%s>", cm.val)
@@ -53,21 +53,21 @@ type EventMessage struct {
 	Name    string           `json:"name"`
 	Data    *json.RawMessage `json:"data"`
 	Version int              `json:"version"`
-	Typ     EventType        `json:"typ"`
+	Typ     MessageType        `json:"type"`
 }
 
 // EventType identifies the type of Event.
-type EventType int
+// type EventType int
 
-const (
-	EventError    EventType = iota // EventError occurred; value is text of error
-	EventBid                       // player bid
-	EventAnnounce                  // player announcement - eg. Bella
-	EventPlayCard                  // player submitting a card to play
-	EventDeal                      // player request to deal
-	EventAccuse                    // accuse another player of a misplay
-	EventEOG                       //end of game
-)
+// const (
+// 	EventError    EventType = iota // EventError occurred; value is text of error
+// 	EventBid                       // player bid
+// 	EventAnnounce                  // player announcement - eg. Bella
+// 	EventPlayCard                  // player submitting a card to play
+// 	EventDeal                      // player request to deal
+// 	EventAccuse                    // accuse another player of a misplay
+// 	EventEOG                       //end of game
+// )
 
 func (em EventMessage) String() string {
 	var data string
@@ -75,9 +75,9 @@ func (em EventMessage) String() string {
 		return err.Error()
 	}
     switch {
-	case em.Typ == EventEOG:
+	case em.Typ == MessageEOG:
 		return "EOG"
-	case em.Typ == EventError:
+	case em.Typ == MessageError:
 		return data
 	case len(data) > 10:
 		return fmt.Sprintf("%.10q...", data)
