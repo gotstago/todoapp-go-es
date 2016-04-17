@@ -1,7 +1,9 @@
 # todoapp-go-es
 
 This is a sample applicaton of golang and CQRS + ES in a simple todo app. 
-
+```
+https://utbrudd.bouvet.no/2015/06/09/a-simple-todo-application-a-comparison-on-traditional-vs-cqrs-es-architecture/
+```
 ## Running with docker
 
 
