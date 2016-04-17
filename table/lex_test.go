@@ -5,7 +5,10 @@
 package table
 
 import (
+	"fmt"
 	"testing"
+
+	"encoding/json"
 
 	"github.com/gotstago/todoapp-go-es/common"
 )
@@ -55,7 +58,7 @@ import (
 
 type tableTest struct {
 	name   string
-	input  []common.CommandMessage
+	input  <-chan common.CommandMessage
 	output []common.EventMessage
 }
 
@@ -77,14 +80,34 @@ type tableTest struct {
 // 	tRawQuote   = item{itemRawString, 0, raw}
 // 	tRawQuoteNL = item{itemRawString, 0, rawNL}
 // )
+var (
+	cmdName        = "ping"
+	cmdData        = []byte(`{"command": "ping"}`)
+	cmdRawData     = (*json.RawMessage)(&cmdData)
+	cmdType        = common.CommandAnnounce
+	cmdSource      = common.CommandMessage{Name: cmdName, Data: cmdRawData, Typ: cmdType}
+	cmdSourceSlice = []common.CommandMessage{cmdSource}
+)
 
-// Some easy cases 
+// Some easy cases
 var tableEasyTests = []tableTest{
-	{"start", []common.CommandMessage{},[]common.EventMessage{}},
+	{"start", gen(cmdSourceSlice), []common.EventMessage{}},
 	// {"empty action", `$$@@`, []item{tLeftDelim, tRightDelim, tEOF}},
 	// {"for", `$$for@@`, []item{tLeftDelim, tFor, tRightDelim, tEOF}},
 	// {"quote", `$$"abc \n\t\" "@@`, []item{tLeftDelim, tQuote, tRightDelim, tEOF}},
 	// {"raw quote", "$$" + raw + "@@", []item{tLeftDelim, tRawQuote, tRightDelim, tEOF}},
+}
+
+func gen(actions []common.CommandMessage) <-chan common.CommandMessage {
+	out := make(chan common.CommandMessage)
+	go func() { //goroutine allows code to block but does not block main thread
+		for _, n := range actions {
+			out <- n
+			fmt.Println("writing CommandMessage ", n)
+		}
+		close(out)
+	}()
+	return out
 }
 
 // collect gathers the emitted events into a slice.

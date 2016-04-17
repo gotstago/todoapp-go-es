@@ -131,7 +131,7 @@ type stateFn func(*controller) stateFn
 // lexer holds the state of the controller.
 type controller struct {
 	name       string    // the name of the input; used only for error reports
-	input      []common.CommandMessage    // the string being scanned
+	input      <-chan common.CommandMessage    // the string being scanned
 	// leftDelim  string    // start of action
 	// rightDelim string    // end of action
 	state      stateFn   // the next lexing function to enter
@@ -183,9 +183,37 @@ func (l *lexer) backup() {
 }
 
 // emit passes an item back to the client.
-func (l *lexer) emit(t itemType) {
-	l.items <- item{t, l.start, l.input[l.start:l.pos]}
-	l.start = l.pos
+// func (l *lexer) emit(t itemType) {
+// 	l.items <- item{t, l.start, l.input[l.start:l.pos]}
+// 	l.start = l.pos
+// }
+
+// emit passes an item back to the client.
+func (l *controller) emit(t common.EventType) {
+    /**/
+    // var echo string
+	// if err := json.Unmarshal(*cmd.Data, &todo); err != nil {
+	// 	return err
+	// }
+	// todo.ID = uuid.New()
+
+	// data, err := json.Marshal(todo)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// raw := json.RawMessage(data)
+
+	event := common.EventMessage{
+		Name: "echo",
+		//Data: &raw,
+        Typ: t,
+	}
+	// eventChan <- event
+	// return nil
+    /**/
+	l.events <- event
+	//l.start = l.pos
 }
 
 // ignore skips over the pending input before this point.
@@ -266,7 +294,7 @@ func (l *lexer) drain() {
 // }
 
 // lex creates a new scanner for the input string.
-func parseCommands(name string, input []common.CommandMessage) *controller {
+func parseCommands(name string, input <-chan common.CommandMessage) *controller {
 	// if left == "" {
 	// 	left = leftDelim
 	// }
@@ -286,10 +314,10 @@ func parseCommands(name string, input []common.CommandMessage) *controller {
 
 // run runs the state machine for the controller.
 func (l *controller) run() {
-	// for l.state = lexText; l.state != nil; {
-	// 	l.state = l.state(l)
-	// }
-	// close(l.items)
+	for l.state = start; l.state != nil; {
+		l.state = l.state(l)
+	}
+	close(l.events)
     //ToDo
 }
 
@@ -309,6 +337,36 @@ const (
 	leftComment  = "/*"
 	rightComment = "*/"
 )
+
+// lexText scans until an opening action delimiter, "{{".
+func start(l *controller) stateFn {
+    fmt.Println("consuming command...", <-l.input)
+	// for {
+	// 	delim, trimSpace := l.atLeftDelim()
+	// 	if delim {
+	// 		trimLength := Pos(0)
+	// 		if trimSpace {
+	// 			trimLength = rightTrimLength(l.input[l.start:l.pos])
+	// 		}
+	// 		l.pos -= trimLength
+	// 		if l.pos > l.start {
+	// 			l.emit(itemText)
+	// 		}
+	// 		l.pos += trimLength
+	// 		l.ignore()
+	// 		//return lexLeftDelim
+	// 	}
+	// 	if l.next() == eof {
+	// 		break
+	// 	}
+	// }
+	// Correctly reached EOF.
+	// if l.pos > l.start {
+	// 	l.emit(itemText)
+	// }
+	l.emit(common.EventEOG)
+	return nil
+}
 
 // lexText scans until an opening action delimiter, "{{".
 // func lexText(l *lexer) stateFn {
