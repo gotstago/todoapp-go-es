@@ -10,6 +10,8 @@ import (
 	"unicode"
 	"unicode/utf8"
     "github.com/gotstago/todoapp-go-es/common"
+    
+    "encoding/json"
 )
 
 // actionCommand represents an incoming command that will be  .
@@ -202,13 +204,14 @@ func (l *controller) emit(t common.MessageType) {
 	// 	return err
 	// }
 
-	// raw := json.RawMessage(data)
+	raw := json.RawMessage([]byte(`{"command": "ping"}`))
 
 	event := common.EventMessage{
 		Name: "echo",
-		//Data: &raw,
+		Data: &raw,
         Typ: t,
 	}
+    fmt.Println("event is...:: ",event.Typ)
 	// eventChan <- event
 	// return nil
     /**/
