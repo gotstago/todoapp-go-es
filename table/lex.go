@@ -9,122 +9,10 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
-    "github.com/gotstago/todoapp-go-es/common"
-    
-    "encoding/json"
-)
 
-// actionCommand represents an incoming command that will be  .
-type actionCommand struct {
-	typ actionType // The type of this action.
-	val string     // The value of this action.
-}
+	"github.com/gotstago/todoapp-go-es/common"
 
-// itemType identifies the type of lex items.
-type actionType int
-
-const (
-	actionError    actionType = iota // error occurred; value is text of error
-	actionBid                        // player bid
-	actionAnnounce                   // player announcement - eg. Bella
-	actionPlayCard                   // player submitting a card to play
-	actionDeal                       // player request to deal
-	actionAccuse                     // accuse another player of a misplay
-	actionEOG                        //end of game
-)
-
-
-// Pos represents a byte position in the original input text from which
-// this template was parsed.
-type Pos int
-
-// item represents a token or text string returned from the scanner.
-type item struct {
-	typ itemType // The type of this item.
-	pos Pos      // The starting position, in bytes, of this item in the input string.
-	val string   // The value of this item.
-}
-
-func (i item) String() string {
-	switch {
-	case i.typ == itemEOF:
-		return "EOF"
-	case i.typ == itemError:
-		return i.val
-	case i.typ > itemKeyword:
-		return fmt.Sprintf("<%s>", i.val)
-	case len(i.val) > 10:
-		return fmt.Sprintf("%.10q...", i.val)
-	}
-	return fmt.Sprintf("%q", i.val)
-}
-
-// itemType identifies the type of lex items.
-type itemType int
-
-const (
-	itemError        itemType = iota // error occurred; value is text of error
-	itemBool                         // boolean constant
-	itemChar                         // printable ASCII character; grab bag for comma etc.
-	itemCharConstant                 // character constant
-	itemComplex                      // complex constant (1+2i); imaginary is just a number
-	itemColonEquals                  // colon-equals (':=') introducing a declaration
-	itemEOF
-	itemField      // alphanumeric identifier starting with '.'
-	itemIdentifier // alphanumeric identifier not starting with '.'
-	itemLeftDelim  // left action delimiter
-	itemLeftParen  // '(' inside action
-	itemNumber     // simple number, including imaginary
-	itemPipe       // pipe symbol
-	itemRawString  // raw quoted string (includes quotes)
-	itemRightDelim // right action delimiter
-	itemRightParen // ')' inside action
-	itemSpace      // run of spaces separating arguments
-	itemString     // quoted string (includes quotes)
-	itemText       // plain text
-	itemVariable   // variable starting with '$', such as '$' or  '$1' or '$hello'
-	// Keywords appear after all the rest.
-	itemKeyword  // used only to delimit the keywords
-	itemBlock    // block keyword
-	itemDot      // the cursor, spelled '.'
-	itemDefine   // define keyword
-	itemElse     // else keyword
-	itemEnd      // end keyword
-	itemIf       // if keyword
-	itemNil      // the untyped nil constant, easiest to treat as a keyword
-	itemRange    // range keyword
-	itemTemplate // template keyword
-	itemWith     // with keyword
-)
-
-var key = map[string]itemType{
-	".":        itemDot,
-	"block":    itemBlock,
-	"define":   itemDefine,
-	"else":     itemElse,
-	"end":      itemEnd,
-	"if":       itemIf,
-	"range":    itemRange,
-	"nil":      itemNil,
-	"template": itemTemplate,
-	"with":     itemWith,
-}
-
-const eof = -1
-
-// Trimming spaces.
-// If the action begins "{{- " rather than "{{", then all space/tab/newlines
-// preceding the action are trimmed; conversely if it ends " -}}" the
-// leading spaces are trimmed. This is done entirely in the lexer; the
-// parser never sees it happen. We require an ASCII space to be
-// present to avoid ambiguity with things like "{{-3}}". It reads
-// better with the space present anyway. For simplicity, only ASCII
-// space does the job.
-const (
-	spaceChars      = " \t\r\n" // These are the space characters defined by Go itself.
-	leftTrimMarker  = "- "      // Attached to left delimiter, trims trailing spaces from preceding text.
-	rightTrimMarker = " -"      // Attached to right delimiter, trims leading spaces from following text.
-	trimMarkerLen   = Pos(len(leftTrimMarker))
+	//"encoding/json"
 )
 
 // stateFn represents the state of the scanner as a function that returns the next state.
@@ -132,68 +20,23 @@ type stateFn func(*controller) stateFn
 
 // lexer holds the state of the controller.
 type controller struct {
-	name       string    // the name of the input; used only for error reports
-	input      <-chan common.CommandMessage    // the string being scanned
-	// leftDelim  string    // start of action
-	// rightDelim string    // end of action
-	state      stateFn   // the next lexing function to enter
-	// pos        Pos       // current position in the input
-	// start      Pos       // start position of this item
-	// width      Pos       // width of last rune read from input
-	// lastPos    Pos       // position of most recent item returned by nextItem
-	events      chan common.EventMessage // channel of scanned events
-	// parenDepth int       // nesting depth of ( ) exprs
-}
-
-// lexer holds the state of the scanner.
-type lexer struct {
-	name       string    // the name of the input; used only for error reports
-	input      string    // the string being scanned
-	leftDelim  string    // start of action
-	rightDelim string    // end of action
-	state      stateFn   // the next lexing function to enter
-	pos        Pos       // current position in the input
-	start      Pos       // start position of this item
-	width      Pos       // width of last rune read from input
-	lastPos    Pos       // position of most recent item returned by nextItem
-	items      chan item // channel of scanned items
-	parenDepth int       // nesting depth of ( ) exprs
+	name   string                       // the name of the input; used only for error reports
+	input  <-chan common.CommandMessage // the string being scanned
+	state  stateFn                      // the next lexing function to enter
+	events chan common.EventMessage     // channel of scanned events
 }
 
 // next returns the next rune in the input.
-func (l *lexer) next() rune {
-	if int(l.pos) >= len(l.input) {
-		l.width = 0
-		return eof
-	}
-	r, w := utf8.DecodeRuneInString(l.input[l.pos:])
-	l.width = Pos(w)
-	l.pos += l.width
-	return r
-}
-
-// peek returns but does not consume the next rune in the input.
-func (l *lexer) peek() rune {
-	r := l.next()
-	l.backup()
-	return r
-}
-
-// backup steps back one rune. Can only be called once per call of next.
-func (l *lexer) backup() {
-	l.pos -= l.width
+func (l *controller) next() common.CommandMessage {
+	var result common.CommandMessage
+	return result
 }
 
 // emit passes an item back to the client.
-// func (l *lexer) emit(t itemType) {
-// 	l.items <- item{t, l.start, l.input[l.start:l.pos]}
-// 	l.start = l.pos
-// }
-
-// emit passes an item back to the client.
-func (l *controller) emit(t common.MessageType) {
-    /**/
-    // var echo string
+func (c *controller) emit(t common.MessageType) {
+	currentCommand := <-c.input
+	/**/
+	// var echo string
 	// if err := json.Unmarshal(*cmd.Data, &todo); err != nil {
 	// 	return err
 	// }
@@ -204,112 +47,33 @@ func (l *controller) emit(t common.MessageType) {
 	// 	return err
 	// }
 
-	raw := json.RawMessage([]byte(`{"command": "ping"}`))
+	//raw := json.RawMessage([]byte(`{"command":"ping","repeat":true}`))
 
 	event := common.EventMessage{
-		Name: "echo",
-		Data: &raw,
-        Typ: t,
+		Name: currentCommand.Name,
+		Data: currentCommand.Data,
+		Typ:  currentCommand.Typ,
 	}
-    fmt.Println("event is...:: ",event.Typ)
+	//fmt.Println("event is...:: ", event.Typ)
 	// eventChan <- event
 	// return nil
-    /**/
-	l.events <- event
+	/**/
+	c.events <- event
 	//l.start = l.pos
 }
 
-// ignore skips over the pending input before this point.
-func (l *lexer) ignore() {
-	l.start = l.pos
-}
-
-// accept consumes the next rune if it's from the valid set.
-func (l *lexer) accept(valid string) bool {
-	if strings.IndexRune(valid, l.next()) >= 0 {
-		return true
-	}
-	l.backup()
-	return false
-}
-
-// acceptRun consumes a run of runes from the valid set.
-func (l *lexer) acceptRun(valid string) {
-	for strings.IndexRune(valid, l.next()) >= 0 {
-	}
-	l.backup()
-}
-
-// lineNumber reports which line we're on, based on the position of
-// the previous item returned by nextItem. Doing it this way
-// means we don't have to worry about peek double counting.
-func (l *lexer) lineNumber() int {
-	return 1 + strings.Count(l.input[:l.lastPos], "\n")
-}
-
-// errorf returns an error token and terminates the scan by passing
-// back a nil pointer that will be the next state, terminating l.nextItem.
-func (l *lexer) errorf(format string, args ...interface{}) stateFn {
-	l.items <- item{itemError, l.start, fmt.Sprintf(format, args...)}
-	return nil
-}
-
 // nextItem returns the next item from the input.
 // Called by the parser, not in the lexing goroutine.
-// func (l *lexer) nextItem() item {
-// 	item := <-l.items
-// 	l.lastPos = item.pos
-// 	return item
-// }
-
-// nextItem returns the next item from the input.
-// Called by the parser, not in the lexing goroutine.
-func (l *controller) nextItem() common.EventMessage {
-	//event := <-l.events
-	//l.lastPos = item.pos
+func (l *controller) nextEvent() common.EventMessage {
 	return <-l.events
 }
 
-// drain drains the output so the lexing goroutine will exit.
-// Called by the parser, not in the lexing goroutine.
-func (l *lexer) drain() {
-	for range l.items {
-	}
-}
-
-// lex creates a new scanner for the input string.
-// func lex(name, input, left, right string) *lexer {
-// 	if left == "" {
-// 		left = leftDelim
-// 	}
-// 	if right == "" {
-// 		right = rightDelim
-// 	}
-// 	l := &lexer{
-// 		name:       name,
-// 		input:      input,
-// 		leftDelim:  left,
-// 		rightDelim: right,
-// 		items:      make(chan item),
-// 	}
-// 	go l.run()
-// 	return l
-// }
-
 // lex creates a new scanner for the input string.
 func parseCommands(name string, input <-chan common.CommandMessage) *controller {
-	// if left == "" {
-	// 	left = leftDelim
-	// }
-	// if right == "" {
-	// 	right = rightDelim
-	// }
 	l := &controller{
-		name:       name,
-		input:      input,
-		// leftDelim:  left,
-		// rightDelim: right,
-		events:      make(chan common.EventMessage),
+		name:  name,
+		input: input,
+		events: make(chan common.EventMessage),
 	}
 	go l.run()
 	return l
@@ -321,16 +85,9 @@ func (l *controller) run() {
 		l.state = l.state(l)
 	}
 	close(l.events)
-    //ToDo
+	//ToDo
 }
 
-// run runs the state machine for the lexer.
-// func (l *lexer) run() {
-// 	for l.state = lexText; l.state != nil; {
-// 		l.state = l.state(l)
-// 	}
-// 	close(l.items)
-// }
 
 // state functions
 
@@ -343,8 +100,8 @@ const (
 
 // lexText scans until an opening action delimiter, "{{".
 func start(l *controller) stateFn {
-    _ = <-l.input
-    fmt.Println("consuming command...")
+	//_ = <-l.input
+	//fmt.Println("consuming command...")
 	// for {
 	// 	delim, trimSpace := l.atLeftDelim()
 	// 	if delim {
@@ -372,6 +129,7 @@ func start(l *controller) stateFn {
 	return nil
 }
 
+///////////////////////////////////////////////////////////////////////////////
 // lexText scans until an opening action delimiter, "{{".
 // func lexText(l *lexer) stateFn {
 // 	for {
@@ -778,3 +536,227 @@ func isEndOfLine(r rune) bool {
 func isAlphaNumeric(r rune) bool {
 	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
 }
+
+// ignore skips over the pending input before this point.
+func (l *lexer) ignore() {
+	l.start = l.pos
+}
+
+// accept consumes the next rune if it's from the valid set.
+func (l *lexer) accept(valid string) bool {
+	if strings.IndexRune(valid, l.next()) >= 0 {
+		return true
+	}
+	l.backup()
+	return false
+}
+
+// acceptRun consumes a run of runes from the valid set.
+func (l *lexer) acceptRun(valid string) {
+	for strings.IndexRune(valid, l.next()) >= 0 {
+	}
+	l.backup()
+}
+
+// lineNumber reports which line we're on, based on the position of
+// the previous item returned by nextItem. Doing it this way
+// means we don't have to worry about peek double counting.
+func (l *lexer) lineNumber() int {
+	return 1 + strings.Count(l.input[:l.lastPos], "\n")
+}
+
+// errorf returns an error token and terminates the scan by passing
+// back a nil pointer that will be the next state, terminating l.nextItem.
+func (l *lexer) errorf(format string, args ...interface{}) stateFn {
+	l.items <- item{itemError, l.start, fmt.Sprintf(format, args...)}
+	return nil
+}
+
+// nextItem returns the next item from the input.
+// Called by the parser, not in the lexing goroutine.
+// func (l *lexer) nextItem() item {
+// 	item := <-l.items
+// 	l.lastPos = item.pos
+// 	return item
+// }
+// actionCommand represents an incoming command that will be  .
+type actionCommand struct {
+	typ actionType // The type of this action.
+	val string     // The value of this action.
+}
+
+// itemType identifies the type of lex items.
+type actionType int
+
+const (
+	actionError    actionType = iota // error occurred; value is text of error
+	actionBid                        // player bid
+	actionAnnounce                   // player announcement - eg. Bella
+	actionPlayCard                   // player submitting a card to play
+	actionDeal                       // player request to deal
+	actionAccuse                     // accuse another player of a misplay
+	actionEOG                        //end of game
+)
+
+// Pos represents a byte position in the original input text from which
+// this template was parsed.
+type Pos int
+
+// item represents a token or text string returned from the scanner.
+type item struct {
+	typ itemType // The type of this item.
+	pos Pos      // The starting position, in bytes, of this item in the input string.
+	val string   // The value of this item.
+}
+
+func (i item) String() string {
+	switch {
+	case i.typ == itemEOF:
+		return "EOF"
+	case i.typ == itemError:
+		return i.val
+	case i.typ > itemKeyword:
+		return fmt.Sprintf("<%s>", i.val)
+	case len(i.val) > 10:
+		return fmt.Sprintf("%.10q...", i.val)
+	}
+	return fmt.Sprintf("%q", i.val)
+}
+
+// itemType identifies the type of lex items.
+type itemType int
+
+const (
+	itemError        itemType = iota // error occurred; value is text of error
+	itemBool                         // boolean constant
+	itemChar                         // printable ASCII character; grab bag for comma etc.
+	itemCharConstant                 // character constant
+	itemComplex                      // complex constant (1+2i); imaginary is just a number
+	itemColonEquals                  // colon-equals (':=') introducing a declaration
+	itemEOF
+	itemField      // alphanumeric identifier starting with '.'
+	itemIdentifier // alphanumeric identifier not starting with '.'
+	itemLeftDelim  // left action delimiter
+	itemLeftParen  // '(' inside action
+	itemNumber     // simple number, including imaginary
+	itemPipe       // pipe symbol
+	itemRawString  // raw quoted string (includes quotes)
+	itemRightDelim // right action delimiter
+	itemRightParen // ')' inside action
+	itemSpace      // run of spaces separating arguments
+	itemString     // quoted string (includes quotes)
+	itemText       // plain text
+	itemVariable   // variable starting with '$', such as '$' or  '$1' or '$hello'
+	// Keywords appear after all the rest.
+	itemKeyword  // used only to delimit the keywords
+	itemBlock    // block keyword
+	itemDot      // the cursor, spelled '.'
+	itemDefine   // define keyword
+	itemElse     // else keyword
+	itemEnd      // end keyword
+	itemIf       // if keyword
+	itemNil      // the untyped nil constant, easiest to treat as a keyword
+	itemRange    // range keyword
+	itemTemplate // template keyword
+	itemWith     // with keyword
+)
+
+var key = map[string]itemType{
+	".":        itemDot,
+	"block":    itemBlock,
+	"define":   itemDefine,
+	"else":     itemElse,
+	"end":      itemEnd,
+	"if":       itemIf,
+	"range":    itemRange,
+	"nil":      itemNil,
+	"template": itemTemplate,
+	"with":     itemWith,
+}
+
+const eof = -1
+
+// Trimming spaces.
+// If the action begins "{{- " rather than "{{", then all space/tab/newlines
+// preceding the action are trimmed; conversely if it ends " -}}" the
+// leading spaces are trimmed. This is done entirely in the lexer; the
+// parser never sees it happen. We require an ASCII space to be
+// present to avoid ambiguity with things like "{{-3}}". It reads
+// better with the space present anyway. For simplicity, only ASCII
+// space does the job.
+const (
+	spaceChars      = " \t\r\n" // These are the space characters defined by Go itself.
+	leftTrimMarker  = "- "      // Attached to left delimiter, trims trailing spaces from preceding text.
+	rightTrimMarker = " -"      // Attached to right delimiter, trims leading spaces from following text.
+	trimMarkerLen   = Pos(len(leftTrimMarker))
+)
+
+// lexer holds the state of the scanner.
+type lexer struct {
+	name       string    // the name of the input; used only for error reports
+	input      string    // the string being scanned
+	leftDelim  string    // start of action
+	rightDelim string    // end of action
+	state      stateFn   // the next lexing function to enter
+	pos        Pos       // current position in the input
+	start      Pos       // start position of this item
+	width      Pos       // width of last rune read from input
+	lastPos    Pos       // position of most recent item returned by nextItem
+	items      chan item // channel of scanned items
+	parenDepth int       // nesting depth of ( ) exprs
+}
+
+// next returns the next rune in the input.
+func (l *lexer) next() rune {
+	if int(l.pos) >= len(l.input) {
+		l.width = 0
+		return eof
+	}
+	r, w := utf8.DecodeRuneInString(l.input[l.pos:])
+	l.width = Pos(w)
+	l.pos += l.width
+	return r
+}
+
+// peek returns but does not consume the next rune in the input.
+func (l *lexer) peek() rune {
+	r := l.next()
+	l.backup()
+	return r
+}
+
+// backup steps back one rune. Can only be called once per call of next.
+func (l *lexer) backup() {
+	l.pos -= l.width
+}
+
+// emit passes an item back to the client.
+// func (l *lexer) emit(t itemType) {
+// 	l.items <- item{t, l.start, l.input[l.start:l.pos]}
+// 	l.start = l.pos
+// }
+// drain drains the output so the lexing goroutine will exit.
+// Called by the parser, not in the lexing goroutine.
+func (l *lexer) drain() {
+	for range l.items {
+	}
+}
+
+// lex creates a new scanner for the input string.
+// func lex(name, input, left, right string) *lexer {
+// 	if left == "" {
+// 		left = leftDelim
+// 	}
+// 	if right == "" {
+// 		right = rightDelim
+// 	}
+// 	l := &lexer{
+// 		name:       name,
+// 		input:      input,
+// 		leftDelim:  left,
+// 		rightDelim: right,
+// 		items:      make(chan item),
+// 	}
+// 	go l.run()
+// 	return l
+// }

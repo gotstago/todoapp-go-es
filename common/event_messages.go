@@ -6,9 +6,10 @@ import (
 )
 
 //CommandMessage is a WS command message
+//see https://willnorris.com/2014/05/go-rest-apis-and-pointers for info on pointers
 type CommandMessage struct {
-	Name string           `json:"name"`
-	Data *json.RawMessage `json:"data"`
+	Name string           `json:"name"     validate:"nonzero"`
+	Data *json.RawMessage `json:"data"`//defaults to nil
 	Typ  MessageType      `json:"type"`
 }
 
@@ -70,7 +71,7 @@ type EventMessage struct {
 // )
 
 func (em EventMessage) String() string {
-	var data string
+	var data json.RawMessage
     if err := json.Unmarshal(*em.Data, &data); err != nil {
 		return err.Error()
 	}
@@ -78,7 +79,7 @@ func (em EventMessage) String() string {
 	case em.Typ == MessageEOG:
 		return "EOG"
 	case em.Typ == MessageError:
-		return data
+		return string(data)
 	case len(data) > 10:
 		return fmt.Sprintf("%.10q...", data)
 	}
