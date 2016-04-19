@@ -70,7 +70,7 @@ type EventMessage struct {
 // 	EventEOG                       //end of game
 // )
 
-func (em EventMessage) String() string {
+func (em EventMessage) Stringer() string {
 	var data json.RawMessage
     if err := json.Unmarshal(*em.Data, &data); err != nil {
 		return err.Error()

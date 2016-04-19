@@ -24,17 +24,19 @@ type controller struct {
 	input  <-chan common.CommandMessage // the string being scanned
 	state  stateFn                      // the next lexing function to enter
 	events chan common.EventMessage     // channel of scanned events
+    currentCommand common.CommandMessage //most recent command consumed
 }
 
-// next returns the next rune in the input.
-func (l *controller) next() common.CommandMessage {
-	var result common.CommandMessage
-	return result
+// next returns the next command in the input.
+func (c *controller) next() common.CommandMessage {
+	///var result common.CommandMessage
+    c.currentCommand = <-c.input
+	return c.currentCommand
 }
 
-// emit passes an item back to the client.
+// emit passes an event back to the client.
 func (c *controller) emit(t common.MessageType) {
-	currentCommand := <-c.input
+	
 	/**/
 	// var echo string
 	// if err := json.Unmarshal(*cmd.Data, &todo); err != nil {
@@ -50,9 +52,9 @@ func (c *controller) emit(t common.MessageType) {
 	//raw := json.RawMessage([]byte(`{"command":"ping","repeat":true}`))
 
 	event := common.EventMessage{
-		Name: currentCommand.Name,
-		Data: currentCommand.Data,
-		Typ:  currentCommand.Typ,
+		Name: c.currentCommand.Name,
+		Data: c.currentCommand.Data,
+		Typ:  c.currentCommand.Typ,
 	}
 	//fmt.Println("event is...:: ", event.Typ)
 	// eventChan <- event
@@ -64,8 +66,8 @@ func (c *controller) emit(t common.MessageType) {
 
 // nextItem returns the next item from the input.
 // Called by the parser, not in the lexing goroutine.
-func (l *controller) nextEvent() common.EventMessage {
-	return <-l.events
+func (c *controller) nextEvent() common.EventMessage {
+	return <-c.events
 }
 
 // lex creates a new scanner for the input string.
@@ -87,16 +89,6 @@ func (l *controller) run() {
 	close(l.events)
 	//ToDo
 }
-
-
-// state functions
-
-const (
-	leftDelim    = "{{"
-	rightDelim   = "}}"
-	leftComment  = "/*"
-	rightComment = "*/"
-)
 
 // lexText scans until an opening action delimiter, "{{".
 func start(l *controller) stateFn {
@@ -125,6 +117,7 @@ func start(l *controller) stateFn {
 	// if l.pos > l.start {
 	// 	l.emit(itemText)
 	// }
+    l.next()
 	l.emit(common.MessageEOG)
 	return nil
 }

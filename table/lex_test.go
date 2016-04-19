@@ -11,6 +11,8 @@ import (
 
 	"encoding/json"
 
+	"fmt"
+
 	"github.com/gotstago/todoapp-go-es/common"
 )
 
@@ -34,15 +36,17 @@ func collect(t *tableTest) (output []common.EventMessage) {
 }
 
 func equal(i1, i2 []common.EventMessage) bool {
-
 	if len(i1) != len(i2) {
+        fmt.Println("i1 type is  :: ", i1[0].Typ, i1[1].Typ)
+		fmt.Println("len in equal :: ", len(i1), len(i2))
 		return false
 	}
+
 	for k := range i1 {
-		// if i1[k].Typ != i2[k].Typ {
-		// 	fmt.Println("types in equal :: ", i1[k].Typ, i2[k].Typ)
-		// 	return false
-		// }
+		if i1[k].Typ != i2[k].Typ {
+			fmt.Println("types in equal :: ", i1[k].Typ, i2[k].Typ)
+			return false
+		}
 		// var target json.RawMessage
 		// source := []byte(*i1[k].Data)
 		// err := json.Unmarshal(source, &target)
@@ -50,12 +54,14 @@ func equal(i1, i2 []common.EventMessage) bool {
 		// 	fmt.Println("Error %s", err.Error())
 		// }
 		//fmt.Println("result of unmarshalled data...", string(target))
-		if !reflect.DeepEqual(i1[k], i2[k]) {
+		if !reflect.DeepEqual(i1[k].Data, i2[k].Data) {
+			fmt.Println("data in equal :: ", i1[k].Data, i2[k].Data)
 			return false
 		}
-		// if i1[k] != i2[k] {
-		// 	return false
-		// }
+		if i1[k].Name != i2[k].Name {
+			fmt.Println("name in equal :: ", i1[k].Name, i2[k].Name)
+			return false
+		}
 	}
 	return true
 }
@@ -81,6 +87,7 @@ var (
 	cmdRawData     = (*json.RawMessage)(&cmdData)
 	cmdType        = common.MessageBid
 	cmdSource      = common.CommandMessage{Name: cmdName, Data: cmdRawData, Typ: cmdType}
+	cmdError      = common.CommandMessage{Name: "", Data: nil, Typ: common.MessageError}
 	cmdSourceSlice = []common.CommandMessage{cmdSource}
 	eventName      = "ping"
 	eventTarget    = common.EventMessage{
@@ -88,11 +95,16 @@ var (
 		Typ:  common.MessageBid,
 		Data: cmdRawData,
 	}
+	eventError    = common.EventMessage{
+		Name: "",
+		Typ:  common.MessageError,
+		Data: nil,
+	}
 )
 
 // Some easy cases
 var tableEasyTests = []tableTest{
-	{"start", toChannel(cmdSourceSlice), []common.EventMessage{eventTarget}},
+	{"start", toChannel(cmdSourceSlice), []common.EventMessage{eventTarget,eventError}},
 	// {"empty action", `$$@@`, []item{tLeftDelim, tRightDelim, tEOF}},
 	// {"for", `$$for@@`, []item{tLeftDelim, tFor, tRightDelim, tEOF}},
 	// {"quote", `$$"abc \n\t\" "@@`, []item{tLeftDelim, tQuote, tRightDelim, tEOF}},
@@ -104,7 +116,7 @@ func TestTable(t *testing.T) {
 	for _, test := range tableEasyTests {
 		output := collect(&test)
 		if !equal(output, test.output) {
-			t.Errorf("%s: got\n\t%s\nexpected\n\t%s", test.name, output, test.output)
+			t.Errorf("%s: got\n\t%+v\nexpected\n\t%+v", test.name, output, test.output)
 			//t.Error("error")
 		}
 	}
