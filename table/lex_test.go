@@ -37,7 +37,7 @@ func collect(t *tableTest) (output []common.EventMessage) {
 
 func equal(i1, i2 []common.EventMessage) bool {
 	if len(i1) != len(i2) {
-        fmt.Println("i1 type is  :: ", i1[0].Typ, i1[1].Typ)
+		fmt.Println("i1 type is  :: ", i1[0].Typ, i1[1].Typ)
 		fmt.Println("len in equal :: ", len(i1), len(i2))
 		return false
 	}
@@ -80,31 +80,46 @@ func toChannel(actions []common.CommandMessage) <-chan common.CommandMessage {
 	return out
 }
 
-//for unmarshalling rawJson, see https://www.socketloop.com/tutorials/golang-marshal-and-unmarshal-json-rawmessage-struct-example
+//for unmarshalling rawJson,
+//see https://www.socketloop.com/tutorials/golang-marshal-and-unmarshal-json-rawmessage-struct-example
 var (
-	cmdName        = "ping"
-	cmdData        = []byte(`{"command":"ping","repeat":true}`)
-	cmdRawData     = (*json.RawMessage)(&cmdData)
-	cmdType        = common.MessageBid
-	cmdSource      = common.CommandMessage{Name: cmdName, Data: cmdRawData, Typ: cmdType}
-	cmdError      = common.CommandMessage{Name: "", Data: nil, Typ: common.MessageError}
-	cmdSourceSlice = []common.CommandMessage{cmdSource}
-	eventName      = "ping"
-	eventTarget    = common.EventMessage{
-		Name: eventName,
-		Typ:  common.MessageBid,
-		Data: cmdRawData,
-	}
-	eventError    = common.EventMessage{
+	cmdData = []byte(`{"command":"ping","repeat":true}`)
+	cmdError = common.CommandMessage{Name: "", Data: nil, Typ: common.MessageError}
+	eventName = "ping"
+	eventError = common.EventMessage{
 		Name: "",
 		Typ:  common.MessageError,
 		Data: nil,
 	}
+	data,_ = json.Marshal(struct {
+		command string
+		repeat  bool
+	}{
+		"ping",
+		true,
+	})
 )
 
 // Some easy cases
+
 var tableEasyTests = []tableTest{
-	{"start", toChannel(cmdSourceSlice), []common.EventMessage{eventTarget,eventError}},
+	{"start",
+		toChannel([]common.CommandMessage{
+			common.CommandMessage{
+				Name: "ping",
+				Data: (*json.RawMessage)(&data),
+				Typ:  common.MessageBid,
+			},
+		}),
+		[]common.EventMessage{
+			common.EventMessage{
+				Name: eventName,
+				Typ:  common.MessageBid,
+				Data: (*json.RawMessage)(&data),
+			},
+			eventError,
+		},
+	},
 	// {"empty action", `$$@@`, []item{tLeftDelim, tRightDelim, tEOF}},
 	// {"for", `$$for@@`, []item{tLeftDelim, tFor, tRightDelim, tEOF}},
 	// {"quote", `$$"abc \n\t\" "@@`, []item{tLeftDelim, tQuote, tRightDelim, tEOF}},
