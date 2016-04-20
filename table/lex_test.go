@@ -54,6 +54,13 @@ func equal(i1, i2 []common.EventMessage) bool {
 		// 	fmt.Println("Error %s", err.Error())
 		// }
 		//fmt.Println("result of unmarshalled data...", string(target))
+		if i1[k].Data != nil {
+			var e1 interface{}
+			if err := json.Unmarshal([]byte(*i1[k].Data), &e1); err != nil {
+				fmt.Println(err)
+			}
+			fmt.Printf("e1 is %v", e1)
+		}
 		if !reflect.DeepEqual(i1[k].Data, i2[k].Data) {
 			fmt.Println("data in equal :: ", i1[k].Data, i2[k].Data)
 			return false
@@ -83,15 +90,15 @@ func toChannel(actions []common.CommandMessage) <-chan common.CommandMessage {
 //for unmarshalling rawJson,
 //see https://www.socketloop.com/tutorials/golang-marshal-and-unmarshal-json-rawmessage-struct-example
 var (
-	cmdData = []byte(`{"command":"ping","repeat":true}`)
-	cmdError = common.CommandMessage{Name: "", Data: nil, Typ: common.MessageError}
-	eventName = "ping"
+	cmdData    = []byte(`{"command":"ping","repeat":true}`)
+	cmdError   = common.CommandMessage{Name: "", Data: nil, Typ: common.MessageError}
+	eventName  = "ping"
 	eventError = common.EventMessage{
 		Name: "",
 		Typ:  common.MessageError,
 		Data: nil,
 	}
-	data,_ = json.Marshal(struct {
+	data, _ = json.Marshal(struct {
 		command string
 		repeat  bool
 	}{
@@ -106,8 +113,8 @@ var tableEasyTests = []tableTest{
 	{"start",
 		toChannel([]common.CommandMessage{
 			common.CommandMessage{
-				Name: "ping",
-				Data: (*json.RawMessage)(&data),
+				Name: "pingy",
+				Data: (*json.RawMessage)(&cmdData),
 				Typ:  common.MessageBid,
 			},
 		}),
@@ -115,7 +122,7 @@ var tableEasyTests = []tableTest{
 			common.EventMessage{
 				Name: eventName,
 				Typ:  common.MessageBid,
-				Data: (*json.RawMessage)(&data),
+				Data: (*json.RawMessage)(&cmdData),
 			},
 			eventError,
 		},
