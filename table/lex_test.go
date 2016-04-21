@@ -69,8 +69,26 @@ func equal(i1, i2 []common.EventMessage) bool {
 			fmt.Println("name in equal :: ", i1[k].Name, i2[k].Name)
 			return false
 		}
+
+		if fromJSON(i1[k].Data) != fromJSON(i2[k].Data) {
+			//fmt.Println("name in equal :: ", i1[k].Name, i2[k].Name)
+			return false
+		}
 	}
 	return true
+}
+
+func fromJSON(d *json.RawMessage) interface{} {
+    if d == nil {
+        return nil
+    }
+	var d1 interface{}
+	if err := json.Unmarshal([]byte(*d), &d); err != nil {
+		fmt.Println(err)
+        return err
+	}
+    fmt.Println("returning ", d1)
+    return d1
 }
 
 //
@@ -113,7 +131,7 @@ var tableEasyTests = []tableTest{
 	{"start",
 		toChannel([]common.CommandMessage{
 			common.CommandMessage{
-				Name: "pingy",
+				Name: "ping",
 				Data: (*json.RawMessage)(&cmdData),
 				Typ:  common.MessageBid,
 			},
