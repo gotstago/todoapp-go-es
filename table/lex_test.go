@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	"github.com/gotstago/todoapp-go-es/common"
+    "github.com/gotstago/todoapp-go-es/game"
 )
 
 type tableTest struct {
@@ -70,25 +71,30 @@ func equal(i1, i2 []common.EventMessage) bool {
 			return false
 		}
 
-		if fromJSON(i1[k].Data) != fromJSON(i2[k].Data) {
-			//fmt.Println("name in equal :: ", i1[k].Name, i2[k].Name)
-			return false
+		if i1[k].Data != nil && i2[k].Data != nil {
+            e1 := fromJSON(i1[k].Data)
+            e2 := fromJSON(i2[k].Data)
+            fmt.Printf("i1 data is %v and i2 data is %v", e1,e2)
+			if fromJSON(i1[k].Data) != fromJSON(i2[k].Data) {
+				//fmt.Println("name in equal :: ", i1[k].Name, i2[k].Name)
+				return false
+			}
 		}
 	}
 	return true
 }
 
 func fromJSON(d *json.RawMessage) interface{} {
-    if d == nil {
-        return nil
-    }
-	var d1 interface{}
-	if err := json.Unmarshal([]byte(*d), &d); err != nil {
+	// if d == nil {
+	// 	return nil
+	// }
+	var d1 game.Game
+	if err := json.Unmarshal([]byte(*d), &d1); err != nil {
 		fmt.Println(err)
-        return err
+		return err
 	}
-    fmt.Println("returning ", d1)
-    return d1
+	fmt.Println("returning ", d1)
+	return d1
 }
 
 //
@@ -123,6 +129,7 @@ var (
 		"ping",
 		true,
 	})
+    JSONGameData = []byte(`{"ID": "12345","Name": "Tarabish","Completed": false}`)
 )
 
 // Some easy cases
@@ -132,7 +139,7 @@ var tableEasyTests = []tableTest{
 		toChannel([]common.CommandMessage{
 			common.CommandMessage{
 				Name: "ping",
-				Data: (*json.RawMessage)(&cmdData),
+				Data: (*json.RawMessage)(&JSONGameData),
 				Typ:  common.MessageBid,
 			},
 		}),
@@ -140,7 +147,7 @@ var tableEasyTests = []tableTest{
 			common.EventMessage{
 				Name: eventName,
 				Typ:  common.MessageBid,
-				Data: (*json.RawMessage)(&cmdData),
+				Data: (*json.RawMessage)(&JSONGameData),
 			},
 			eventError,
 		},
